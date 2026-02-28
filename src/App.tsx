@@ -268,7 +268,7 @@ function SiteContent() {
             </div>
 
             {/* Featured Image / Carousel Row - Bottom aligned so image stretches UPWARDS */}
-            <div className="flex flex-col xl:flex-row items-end gap-8 lg:gap-10">
+            <div className="flex flex-col-reverse xl:flex-row items-center xl:items-end gap-8 lg:gap-10">
 
               {/* Image only slightly larger than 300px dish, extra height goes up */}
               {config.menuFeaturedImage && (
@@ -320,10 +320,10 @@ function SiteContent() {
 
                 {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).length > 2 && (
                   <>
-                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: -380, behavior: 'smooth' })} className="flex absolute left-0 md:-left-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 md:opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
+                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: -380, behavior: 'smooth' })} className="flex absolute left-2 md:-left-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 md:opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
                       <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
-                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: 380, behavior: 'smooth' })} className="flex absolute right-0 md:-right-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 md:opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
+                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: 380, behavior: 'smooth' })} className="flex absolute right-2 md:-right-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 md:opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
                       <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
                   </>
