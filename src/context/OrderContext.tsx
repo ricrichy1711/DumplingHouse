@@ -1,59 +1,140 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '../utils/supabase';
 import { Order } from '../types';
+import { useAuth } from './AuthContext';
 
 interface OrderContextType {
   orders: Order[];
-  addOrder: (order: Order) => void;
-  updateOrder: (order: Order) => void;
-  removeOrder: (id: string) => void;
+  addOrder: (order: Order) => Promise<void>;
+  updateOrder: (order: Order) => Promise<void>;
+  removeOrder: (id: string) => Promise<void>;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export const OrderProvider = ({ children }: { children: ReactNode }) => {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: 'ORD-001',
-      customerName: 'Juan Pérez',
-      total: 25.5,
-      status: 'pending',
-      date: '2024-05-20 14:30',
-      scheduledTime: '14:30',
-      items: [],
-      deliveryType: 'delivery',
-      paymentMethod: 'Efectivo',
-      address: 'Calle Falsa 123',
-      phone: '+52 644 123 4567'
-    },
-    {
-      id: 'ORD-002',
-      customerName: 'Maria Garcia',
-      total: 42.0,
-      status: 'preparing',
-      date: '2024-05-20 14:45',
-      scheduledTime: '15:00',
-      items: [],
-      deliveryType: 'pickup',
-      paymentMethod: 'Tarjeta',
-      address: '',
-      phone: '+52 644 765 4321'
-    }
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const { user } = useAuth();
 
-  const addOrder = (order: Order) => setOrders(prev => [...prev, order]);
-  const updateOrder = (order: Order) =>
-    setOrders(prev => {
-      const result = prev.map(o => (o.id === order.id ? order : o));
-      // side effects based on status change
-      if (order.status === 'delivered') {
-        console.log(`Order ${order.id} marked as delivered`);
-        // further actions could be triggered here (notifications, analytics, etc.)
-      } else if (order.status === 'cancelled') {
-        console.log(`Order ${order.id} was cancelled`);
+  const fetchOrders = async () => {
+    if (!user) {
+      setOrders([]);
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`*, order_items(*)`)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+        return;
       }
-      return result;
-    });
-  const removeOrder = (id: string) => setOrders(prev => prev.filter(o => o.id !== id));
+
+      if (data) {
+        setOrders(data.map(o => ({
+          id: o.id,
+          customerName: o.customer_name,
+          total: o.total,
+          status: o.status,
+          date: new Date(o.created_at).toLocaleString('es-MX'),
+          scheduledTime: o.scheduled_time || '',
+          items: (o.order_items || []).map((i: any) => ({
+            id: i.menu_item_id,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+            image: i.image || '',
+          })),
+          deliveryType: o.delivery_type || 'pickup',
+          paymentMethod: o.payment_method || '',
+          address: o.address || '',
+          phone: o.phone || '',
+        })));
+      }
+    } catch (e) {
+      console.error('Error fetching orders:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+
+    // Real-time subscription for order status updates
+    if (!user) return;
+    const channel = supabase
+      .channel('orders-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        fetchOrders();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
+  const addOrder = async (order: Order) => {
+    try {
+      const { data: orderData, error } = await supabase
+        .from('orders')
+        .insert([{
+          customer_id: user?.id || null,
+          customer_name: order.customerName,
+          total: order.total,
+          status: order.status || 'pending',
+          delivery_type: order.deliveryType,
+          payment_method: order.paymentMethod,
+          address: order.address,
+          phone: order.phone,
+          scheduled_time: order.scheduledTime,
+        }])
+        .select()
+        .single();
+
+      if (error || !orderData) {
+        console.error('Error creating order:', error);
+        return;
+      }
+
+      // Insert order items
+      if (order.items?.length > 0) {
+        const itemsToInsert = order.items.map(item => ({
+          order_id: orderData.id,
+          menu_item_id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+        }));
+        await supabase.from('order_items').insert(itemsToInsert);
+      }
+
+      await fetchOrders();
+    } catch (e) {
+      console.error('Error creating order:', e);
+    }
+  };
+
+  const updateOrder = async (order: Order) => {
+    try {
+      await supabase
+        .from('orders')
+        .update({ status: order.status })
+        .eq('id', order.id);
+      setOrders(prev => prev.map(o => o.id === order.id ? order : o));
+    } catch (e) {
+      console.error('Error updating order:', e);
+    }
+  };
+
+  const removeOrder = async (id: string) => {
+    try {
+      await supabase.from('orders').delete().eq('id', id);
+      setOrders(prev => prev.filter(o => o.id !== id));
+    } catch (e) {
+      console.error('Error removing order:', e);
+    }
+  };
 
   return (
     <OrderContext.Provider value={{ orders, addOrder, updateOrder, removeOrder }}>
@@ -63,7 +144,7 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useOrders = () => {
-  const ctx = useContext(OrderContext);
-  if (!ctx) throw new Error('useOrders must be used within an OrderProvider');
-  return ctx;
+  const context = useContext(OrderContext);
+  if (!context) throw new Error('useOrders must be used within an OrderProvider');
+  return context;
 };

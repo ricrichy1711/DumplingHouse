@@ -23,6 +23,7 @@ function SiteContent() {
   const [isCartOpen, setIsCartOpen] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState('Todos');
   const [isAuthOpen, setIsAuthOpen] = React.useState(false);
+  const [showProfile, setShowProfile] = React.useState(false);
 
   React.useEffect(() => {
     if (!categories.includes(activeCategory)) {
@@ -151,10 +152,19 @@ function SiteContent() {
                 )}
               </button>
               {user ? (
-                <button
-                  onClick={logout}
-                  className="ml-4 text-sm bg-red-600 px-3 py-2 rounded-full hover:bg-red-700"
-                >Cerrar sesión</button>
+                <div className="flex items-center gap-2 ml-4">
+                  <button
+                    onClick={() => setShowProfile(true)}
+                    className="w-9 h-9 bg-red-600 rounded-full flex items-center justify-center text-white font-bold uppercase text-sm hover:bg-red-700 transition"
+                    title="Mi perfil"
+                  >
+                    {user.name.charAt(0)}
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="text-sm bg-white/10 px-3 py-2 rounded-full hover:bg-red-600 hover:text-white transition-all border border-white/10"
+                  >Salir</button>
+                </div>
               ) : (
                 <button
                   onClick={openAuth}
@@ -165,11 +175,11 @@ function SiteContent() {
           </div>
         </nav>
 
-        {user && <UserProfile />}
+        {user && <UserProfile isOpen={showProfile} onClose={() => setShowProfile(false)} />}
 
         <section
           id="home"
-          className={`relative min-h-[90vh] py-32 md:py-40 flex items-center justify-center overflow-hidden transition-all duration-500 bg-transparent ${config.heroBgImageHidden ? 'hidden' : ''}`}
+          className={`relative min-h-[90vh] py-16 md:py-20 flex items-center justify-center overflow-hidden transition-all duration-500 bg-transparent ${config.heroBgImageHidden ? 'hidden' : ''}`}
         >
           {/* Hero Specific Background Layer */}
           {config.heroBgImage && !config.heroBgImageHidden && (
@@ -236,7 +246,7 @@ function SiteContent() {
         {/* Menu Section */}
         <section
           id="menu"
-          className="py-34 px-4 relative transition-all duration-700"
+          className="py-16 px-4 relative transition-all duration-700"
           style={{
             backgroundImage: config.menuBgImage ? `url(${config.menuBgImage})` : 'none',
             ...getBgStyle('menuBgImage')

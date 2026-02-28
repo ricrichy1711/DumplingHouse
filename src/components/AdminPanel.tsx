@@ -224,12 +224,32 @@ export function AdminPanel() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Categoría</label>
-            <input
-              type="text"
+            <select
               value={form.category}
-              onChange={e => handleChange('category', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-700 rounded bg-gray-800 text-white"
-            />
+              onChange={e => {
+                if (e.target.value === '__new__') {
+                  handleChange('category', '');
+                } else {
+                  handleChange('category', e.target.value);
+                }
+              }}
+              className="w-full px-4 py-2 border border-gray-700 rounded bg-gray-800 text-white mb-2"
+            >
+              <option value="">-- Selecciona categoría --</option>
+              {categories.filter(c => c !== 'Todos').map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+              <option value="__new__">➕ Nueva categoría...</option>
+            </select>
+            {(!form.category || !categories.filter(c => c !== 'Todos').includes(form.category)) && (
+              <input
+                type="text"
+                value={form.category}
+                onChange={e => handleChange('category', e.target.value)}
+                placeholder="Escribe el nombre de la nueva categoría"
+                className="w-full px-4 py-2 border border-red-600/40 rounded bg-gray-800 text-white text-sm"
+              />
+            )}
           </div>
         </div>
         <div className="space-y-4 pt-4 border-t border-gray-700">

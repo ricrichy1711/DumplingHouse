@@ -50,16 +50,45 @@ export const MenuProvider = ({ children }: { children: ReactNode }) => {
   const categories = ['Todos', ...dbCategories];
 
   const addItem = async (item: MenuItem) => {
-    const { data, error } = await supabase.from('menu_items').insert([item]).select();
-    if (!error && data) {
+    // Strip fields that don't exist in the DB schema
+    const { id: _id, imageScale, imagePositionX, imagePositionY, ...dbFields } = item as any;
+    const payload = {
+      name: dbFields.name,
+      description: dbFields.description || '',
+      price: dbFields.price,
+      image: dbFields.image || '',
+      category: dbFields.category,
+      is_popular: dbFields.is_popular ?? false,
+      is_vegetarian: dbFields.is_vegetarian ?? false,
+      disabled: dbFields.disabled ?? false,
+    };
+    const { data, error } = await supabase.from('menu_items').insert([payload]).select();
+    if (error) {
+      console.error('Error adding item:', error.message);
+      return;
+    }
+    if (data) {
       setItems(prev => [...prev, { ...data[0], id: data[0].id.toString() }]);
     }
   };
 
   const updateItem = async (updated: MenuItem) => {
-    const { error } = await supabase.from('menu_items').update(updated).eq('id', updated.id);
+    const { id, imageScale, imagePositionX, imagePositionY, ...rest } = updated as any;
+    const payload = {
+      name: rest.name,
+      description: rest.description || '',
+      price: rest.price,
+      image: rest.image || '',
+      category: rest.category,
+      is_popular: rest.is_popular ?? false,
+      is_vegetarian: rest.is_vegetarian ?? false,
+      disabled: rest.disabled ?? false,
+    };
+    const { error } = await supabase.from('menu_items').update(payload).eq('id', id);
     if (!error) {
-      setItems(prev => prev.map(i => (i.id === updated.id ? updated : i)));
+      setItems(prev => prev.map(i => (i.id === updated.id ? { ...updated, id: id.toString() } : i)));
+    } else {
+      console.error('Error updating item:', error.message);
     }
   };
 

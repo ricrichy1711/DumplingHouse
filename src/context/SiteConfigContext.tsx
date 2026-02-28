@@ -173,28 +173,39 @@ export function SiteConfigProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  // Load from Supabase on mount
+  // Load from Supabase on mount — shows logo splash, then resolves within 2s max
   useEffect(() => {
+    let resolved = false;
+    const safetyTimer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        setIsLoading(false);
+      }
+    }, 2000);
+
     async function loadConfig() {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('site_configs')
           .select('config_data')
           .eq('id', 1)
           .single();
 
-        if (error) {
-          console.error('Error loading config from Supabase:', error);
-        } else if (data && Object.keys(data.config_data).length > 0) {
+        if (data && data.config_data && Object.keys(data.config_data).length > 0) {
           setConfigState(prev => ({ ...prev, ...data.config_data }));
         }
       } catch (e) {
         console.error('Caught error loading config:', e);
       } finally {
-        setIsLoading(false);
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(safetyTimer);
+          setIsLoading(false);
+        }
       }
     }
     loadConfig();
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   // Sync to localStorage as backup
