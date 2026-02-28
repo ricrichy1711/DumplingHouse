@@ -17,15 +17,11 @@ import { MenuItem, CartItem } from './types';
 
 function SiteContent() {
   const { user, logout } = useAuth();
-  const { items: MENU_ITEMS } = useMenu();
+  const { items: MENU_ITEMS, categories } = useMenu();
   const { config, isLoading } = useSiteConfig();
   const [cart, setCart] = React.useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = React.useState(false);
-  const categories = React.useMemo(() => [
-    'Todos',
-    ...Array.from(new Set(MENU_ITEMS.map(i => i.category)))
-  ], [MENU_ITEMS]);
-  const [activeCategory, setActiveCategory] = React.useState(categories[0] || 'Todos');
+  const [activeCategory, setActiveCategory] = React.useState('Todos');
   const [isAuthOpen, setIsAuthOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -409,14 +405,14 @@ function SiteContent() {
                         <p className="text-red-500 font-bold text-sm">${item.price * item.quantity}</p>
                         <div className="flex items-center gap-3 mt-2">
                           <button
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() => updateQuantity(item.id as string, -1)}
                             className="p-1 hover:bg-white/10 rounded border border-white/10"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() => updateQuantity(item.id as string, 1)}
                             className="p-1 hover:bg-white/10 rounded border border-white/10"
                           >
                             <Plus className="w-4 h-4" />
@@ -424,7 +420,7 @@ function SiteContent() {
                         </div>
                       </div>
                       <button
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item.id as string)}
                         className="text-gray-500 hover:text-red-500"
                       >
                         <X className="w-5 h-5" />

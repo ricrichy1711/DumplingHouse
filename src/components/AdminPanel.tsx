@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +13,7 @@ import { SitePreview } from './SitePreview';
 export function AdminPanel() {
   const { config, setConfig, isPublishing } = useSiteConfig();
   const { logout } = useAuth();
-  const { items, updateItem, addItem, removeItem, toggleAvailability } = useMenu();
+  const { items, categories, addItem, updateItem, removeItem, toggleAvailability, addCategory, removeCategory } = useMenu();
   const { orders, updateOrder } = useOrders();
   const { customers, blockCustomer, unblockCustomer } = useCustomers();
 
@@ -24,6 +26,7 @@ export function AdminPanel() {
 
   const [currentSection, setCurrentSection] = useState<'hero' | 'menu' | 'banner' | 'about' | 'footer' | 'design' | 'preview' | null>('preview');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
     const file = e.target.files?.[0];
@@ -465,7 +468,7 @@ export function AdminPanel() {
                   )}
 
                   {currentSection === 'menu' && (
-                    <div className="max-w-2xl space-y-8">
+                    <div className="max-w-2xl space-y-12">
                       <div className="p-10 bg-white/[0.02] rounded-[2.5rem] border border-white/5 space-y-8">
                         <div className="space-y-3">
                           <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Título de la Carta</label>
@@ -474,6 +477,48 @@ export function AdminPanel() {
                         <div className="space-y-3">
                           <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Eslogan del Menú</label>
                           <input type="text" value={editedConfig.menuSubtitle} onChange={e => setEditedConfig({ ...editedConfig, menuSubtitle: e.target.value })} className="w-full bg-black border border-white/5 rounded-2xl px-6 py-5 text-gray-400 font-medium" />
+                        </div>
+                      </div>
+
+                      <div className="p-10 bg-white/[0.02] rounded-[2.5rem] border border-white/5 space-y-8">
+                        <div>
+                          <h5 className="text-xl font-black italic tracking-tighter text-white uppercase mb-2">Gestión de Categorías</h5>
+                          <p className="text-xs text-gray-500 font-medium mb-6">Agrega o elimina las columnas/filtros de tu menú.</p>
+
+                          <div className="flex flex-wrap gap-2 mb-8">
+                            {categories.filter(c => c !== 'Todos').map(cat => (
+                              <div key={cat} className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full group">
+                                <span className="text-[10px] font-bold text-white uppercase tracking-wider">{cat}</span>
+                                <button
+                                  onClick={() => removeCategory(cat)}
+                                  className="text-gray-500 hover:text-red-500 transition-colors"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={newCatName}
+                              onChange={(e) => setNewCatName(e.target.value)}
+                              placeholder="Nueva categoría..."
+                              className="flex-1 bg-black border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                            />
+                            <button
+                              onClick={() => {
+                                if (newCatName.trim()) {
+                                  addCategory(newCatName.trim());
+                                  setNewCatName('');
+                                }
+                              }}
+                              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-600/20"
+                            >
+                              Agregar
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>

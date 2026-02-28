@@ -1,5 +1,5 @@
 export interface MenuItem {
-  id: number;
+  id: string | number;
   name: string;
   description: string;
   price: number;
@@ -9,6 +9,13 @@ export interface MenuItem {
   isVegetarian?: boolean;
   // whether the item is currently available for ordering
   disabled?: boolean;
+  sort_order?: number;
+}
+
+export interface MenuCategory {
+  id: string;
+  name: string;
+  sort_order?: number;
 }
 
 export interface CartItem extends MenuItem {
