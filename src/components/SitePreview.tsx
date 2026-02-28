@@ -211,10 +211,10 @@ export function SitePreview({ config, menuItems: MENU_ITEMS }: SitePreviewProps)
 
                                 {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).slice(0, 6).length > 2 && (
                                     <>
-                                        <button onClick={() => document.getElementById('preview-dishes-carousel')?.scrollBy({ left: -240, behavior: 'smooth' })} className="hidden sm:flex absolute -left-4 top-[40%] -translate-y-1/2 w-8 h-8 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
+                                        <button onClick={() => document.getElementById('preview-dishes-carousel')?.scrollBy({ left: -240, behavior: 'smooth' })} className="flex absolute left-0 md:-left-4 top-[40%] -translate-y-1/2 w-8 h-8 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-100 group-hover/carousel:opacity-100 backdrop-blur-md">
                                             <ChevronLeft className="w-4 h-4" />
                                         </button>
-                                        <button onClick={() => document.getElementById('preview-dishes-carousel')?.scrollBy({ left: 240, behavior: 'smooth' })} className="hidden sm:flex absolute -right-4 top-[40%] -translate-y-1/2 w-8 h-8 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
+                                        <button onClick={() => document.getElementById('preview-dishes-carousel')?.scrollBy({ left: 240, behavior: 'smooth' })} className="flex absolute right-0 md:-right-4 top-[40%] -translate-y-1/2 w-8 h-8 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-100 group-hover/carousel:opacity-100 backdrop-blur-md">
                                             <ChevronRight className="w-4 h-4" />
                                         </button>
                                     </>

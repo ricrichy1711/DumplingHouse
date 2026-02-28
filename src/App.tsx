@@ -117,7 +117,6 @@ function SiteContent() {
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
           backgroundImage: `url(${config.globalBgImage || '/interior.jpg'})`,
-          backgroundAttachment: 'fixed',
           ...getBgStyle('globalBgImage')
         }}
       />
@@ -240,7 +239,6 @@ function SiteContent() {
           className="py-34 px-4 relative transition-all duration-700"
           style={{
             backgroundImage: config.menuBgImage ? `url(${config.menuBgImage})` : 'none',
-            backgroundAttachment: 'fixed',
             ...getBgStyle('menuBgImage')
           }}
         >
@@ -322,11 +320,11 @@ function SiteContent() {
 
                 {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).length > 2 && (
                   <>
-                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: -380, behavior: 'smooth' })} className="hidden md:flex absolute -left-6 top-[40%] -translate-y-1/2 w-14 h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
-                      <ChevronLeft className="w-6 h-6" />
+                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: -380, behavior: 'smooth' })} className="flex absolute left-0 md:-left-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 md:opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
+                      <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
-                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: 380, behavior: 'smooth' })} className="hidden md:flex absolute -right-6 top-[40%] -translate-y-1/2 w-14 h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
-                      <ChevronRight className="w-6 h-6" />
+                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: 380, behavior: 'smooth' })} className="flex absolute right-0 md:-right-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-20 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 md:opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
+                      <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
                   </>
                 )}
@@ -336,7 +334,7 @@ function SiteContent() {
         </section>
 
         <section
-          className="relative bg-cover bg-top bg-fixed bg-[length:120%] py-16 px-4"
+          className="relative bg-cover bg-top md:bg-fixed bg-[length:120%] py-16 px-4"
           style={{ backgroundImage: `url(${config.heroImage || '/interior.jpg'})` }}
         >
           <div className="absolute inset-0 bg-red-600/90"></div>
