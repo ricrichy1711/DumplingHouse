@@ -40,8 +40,7 @@ export function SitePreview({ config, menuItems: MENU_ITEMS }: SitePreviewProps)
         const posY = (config[`${key}PositionY` as keyof typeof config] as number) ?? 50;
         return {
             backgroundPosition: `${posX}% ${posY}%`,
-            backgroundSize: scale === 1 ? 'cover' : `${scale * 100}%`,
-            backgroundAttachment: 'fixed' as const
+            backgroundSize: scale === 1 ? 'cover' : `${scale * 100}%`
         };
     };
 
@@ -145,89 +144,95 @@ export function SitePreview({ config, menuItems: MENU_ITEMS }: SitePreviewProps)
                         ...getBgStyle('menuBgImage')
                     }}
                 >
-                    {config.menuBgImage && <div className="absolute inset-0 bg-black/70 z-0" />}
-                    <div className="relative max-w-7xl mx-auto z-10 flex flex-col gap-8">
-                        {/* 1. Headers */}
-                        <div className="max-w-md">
-                            <h2 className="text-red-500 font-bold tracking-widest mb-1 text-[10px] uppercase">{config.menuSubtitle || 'Nuestra Selección'}</h2>
-                            <h3 className="text-2xl md:text-3xl font-black">{config.menuTitle || 'MENÚ TRADICIONAL'}</h3>
-                        </div>
+                    <div className="relative max-w-7xl mx-auto z-10">
+                        {/* Main Flex Container */}
+                        <div className="flex flex-col xl:flex-row xl:items-end gap-4 lg:gap-8 w-full overflow-hidden">
 
-                        {/* 2. Featured Image */}
-                        {config.menuFeaturedImage && (
-                            <div className="w-full h-[150px] md:h-[250px] rounded-3xl overflow-hidden border border-white/5 shadow-2xl mb-2">
-                                <img
-                                    src={config.menuFeaturedImage}
-                                    className="w-full h-full object-cover"
-                                    alt="Menu Destacado"
-                                    style={{
-                                        objectPosition: `${config.menuFeaturedImagePositionX ?? 50}% ${config.menuFeaturedImagePositionY ?? 50}%`,
-                                        transform: `scale(${config.menuFeaturedImageScale || 1})`
-                                    }}
-                                />
-                            </div>
-                        )}
-
-                        {/* Content Flex Container */}
-                        <div className="w-full flex-1 flex flex-col md:flex-row min-w-0 gap-4">
-                            {/* 3. Categories */}
-                            <div className="flex flex-row md:flex-col flex-wrap gap-2 overflow-x-auto md:w-36 shrink-0 pb-2 md:pb-0 scrollbar-hide items-start">
-                                {categories.map(cat => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setActiveCategory(cat)}
-                                        className={`px-4 py-1.5 md:py-2 rounded-full md:rounded-lg text-[10px] font-bold transition-all border whitespace-nowrap md:w-full md:text-left shadow-md ${activeCategory === cat
-                                            ? 'bg-red-600 border-red-600 text-white'
-                                            : 'bg-transparent border-white/20 text-gray-400 hover:border-red-500 hover:text-white hover:bg-white/5'
-                                            }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* 4. Dishes Carousel */}
-                            <div className="relative group/carousel flex-1 min-w-0">
-                                <div id="preview-dishes-carousel" className="flex gap-4 overflow-x-auto snap-x scrollbar-hide pb-4 scroll-smooth will-change-transform items-stretch h-full">
-                                    <AnimatePresence mode="wait">
-                                        {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).slice(0, 6).map((item) => (
-                                            <motion.div
-                                                key={item.id}
-                                                layout
-                                                initial={{ opacity: 0, scale: 0.95 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.95 }}
-                                                className="min-w-[80vw] sm:min-w-[190px] shrink-0 snap-center bg-[#151515] rounded-3xl overflow-hidden border border-white/5 group/card shadow-xl"
-                                            >
-                                                <div className="relative h-40 overflow-hidden">
-                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110" style={{ transform: `scale(${item.imageScale || 1})`, objectPosition: `${item.imagePositionX ?? 50}% ${item.imagePositionY ?? 50}%` }} />
-                                                    <div className="absolute top-3 right-3 bg-red-600 text-white font-bold px-2.5 py-1 rounded-full text-[10px]">
-                                                        ${item.price.toFixed(2)}
-                                                    </div>
-                                                </div>
-                                                <div className="p-4 flex flex-col h-[calc(100%-10rem)] min-h-[140px]">
-                                                    <h4 className="text-sm font-bold mb-1 truncate group-hover/card:text-red-500 transition-colors">{item.name}</h4>
-                                                    <p className="text-gray-400 text-[10px] mb-3 line-clamp-2 h-8">{item.description}</p>
-                                                    <div className="mt-auto w-full flex items-center justify-center gap-2 bg-white/5 text-white py-2 rounded-xl font-bold uppercase tracking-widest text-[9px] hover:bg-red-600 transition-colors">
-                                                        <Plus className="w-3 h-3" />
-                                                        Agregar al Carrito
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
+                            {/* LEFT COLUMN: Header + Image */}
+                            <div className="w-full xl:w-[260px] flex flex-col gap-4 lg:gap-8 shrink-0">
+                                {/* 1. Headers */}
+                                <div className="max-w-md">
+                                    <h2 className="text-red-500 font-bold tracking-widest mb-1 text-[10px] uppercase">{config.menuSubtitle || 'Nuestra Selección'}</h2>
+                                    <h3 className="text-2xl md:text-3xl font-black">{config.menuTitle || 'MENÚ TRADICIONAL'}</h3>
                                 </div>
 
-                                {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).slice(0, 6).length > 1 && (
-                                    <>
-                                        <button onClick={() => document.getElementById('preview-dishes-carousel')?.scrollBy({ left: -240, behavior: 'smooth' })} className="flex absolute left-2 md:-left-4 top-[40%] -translate-y-1/2 w-8 h-8 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-100 backdrop-blur-md">
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => document.getElementById('preview-dishes-carousel')?.scrollBy({ left: 240, behavior: 'smooth' })} className="flex absolute right-2 md:-right-4 top-[40%] -translate-y-1/2 w-8 h-8 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-100 backdrop-blur-md">
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </>
+                                {/* 2. Featured Image */}
+                                {config.menuFeaturedImage && (
+                                    <div className="w-full aspect-square md:aspect-[4/3] xl:aspect-auto xl:h-[380px] rounded-3xl overflow-hidden border border-white/5 shadow-2xl shrink-0 xl:flex-1">
+                                        <img
+                                            src={config.menuFeaturedImage}
+                                            className="w-full h-full object-cover"
+                                            alt="Menu Destacado"
+                                            style={{
+                                                objectPosition: `${config.menuFeaturedImagePositionX ?? 50}% ${config.menuFeaturedImagePositionY ?? 50}%`,
+                                                transform: `scale(${config.menuFeaturedImageScale || 1})`
+                                            }}
+                                        />
+                                    </div>
                                 )}
+                            </div>
+
+                            {/* RIGHT COLUMN: Categories + Carousel */}
+                            <div className="flex-1 flex flex-col min-w-0 gap-4 xl:pt-2">
+                                {/* 3. Categories */}
+                                <div className="flex flex-wrap gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                    {categories.map(cat => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setActiveCategory(cat)}
+                                            className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all border whitespace-nowrap ${activeCategory === cat
+                                                ? 'bg-red-600 border-red-600 text-white'
+                                                : 'bg-transparent border-white/20 text-gray-400'
+                                                }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* 4. Dishes Carousel */}
+                                <div className="relative group/carousel flex-1 min-w-0">
+                                    <div id="preview-dishes-carousel" className="flex gap-4 overflow-x-auto snap-x scrollbar-hide pb-4 scroll-smooth will-change-transform items-stretch h-full">
+                                        <AnimatePresence mode="wait">
+                                            {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).slice(0, 6).map((item) => (
+                                                <motion.div
+                                                    key={item.id}
+                                                    layout
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    className="min-w-[80vw] sm:min-w-[190px] shrink-0 snap-center bg-[#151515] rounded-3xl overflow-hidden border border-white/5 group/card"
+                                                >
+                                                    <div className="relative h-40 overflow-hidden">
+                                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110" style={{ transform: `scale(${item.imageScale || 1})`, objectPosition: `${item.imagePositionX ?? 50}% ${item.imagePositionY ?? 50}%` }} />
+                                                        <div className="absolute top-3 right-3 bg-red-600 text-white font-bold px-2.5 py-1 rounded-full text-[10px]">
+                                                            ${item.price.toFixed(2)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-4 flex flex-col h-[calc(100%-10rem)] min-h-[140px]">
+                                                        <h4 className="text-sm font-bold mb-1 truncate group-hover/card:text-red-500 transition-colors">{item.name}</h4>
+                                                        <p className="text-gray-400 text-[10px] mb-3 line-clamp-2 h-8">{item.description}</p>
+                                                        <div className="mt-auto w-full flex items-center justify-center gap-2 bg-white/5 text-white py-2 rounded-xl font-bold uppercase tracking-widest text-[9px] hover:bg-red-600 transition-colors">
+                                                            <Plus className="w-3 h-3" />
+                                                            Agregar al Carrito
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
+                                    </div>
+
+                                    {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).slice(0, 6).length > 1 && (
+                                        <>
+                                            <button onClick={() => document.getElementById('preview-dishes-carousel')?.scrollBy({ left: -240, behavior: 'smooth' })} className="flex absolute left-2 md:-left-4 top-[40%] -translate-y-1/2 w-8 h-8 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-100 backdrop-blur-md">
+                                                <ChevronLeft className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => document.getElementById('preview-dishes-carousel')?.scrollBy({ left: 240, behavior: 'smooth' })} className="flex absolute right-2 md:-right-4 top-[40%] -translate-y-1/2 w-8 h-8 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_20px_rgba(0,0,0,0.8)] opacity-100 backdrop-blur-md">
+                                                <ChevronRight className="w-4 h-4" />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

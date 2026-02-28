@@ -248,13 +248,45 @@ export function AdminPanel() {
             </div>
           )}
 
-          <input
-            type="text"
-            value={form.image}
-            onChange={e => handleChange('image', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-700 rounded bg-gray-800 text-white"
-            placeholder="Pega el enlace de la imagen..."
-          />
+          <div className="flex gap-2 items-center">
+            {form.image?.startsWith('data:') ? (
+              <div className="flex-1 px-4 py-2 border border-green-500/30 rounded bg-green-900/20 text-green-400 text-xs font-bold truncate">
+                ✓ ARCHIVO LOCAL CARGADO
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={form.image}
+                onChange={e => handleChange('image', e.target.value)}
+                className="flex-1 px-4 py-2 border border-gray-700 rounded bg-gray-800 text-white text-sm"
+                placeholder="Pega el enlace de la imagen..."
+              />
+            )}
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); document.getElementById(`dish-img-${form.id || 'new'}`)?.click(); }}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all whitespace-nowrap h-[38px]"
+            >
+              Subir
+            </button>
+            {form.image && (
+              <button type="button" onClick={() => handleChange('image', '')} className="w-[38px] h-[38px] flex items-center justify-center bg-red-600/20 text-red-500 rounded hover:bg-red-600 hover:text-white transition-all shrink-0"><Trash2 className="w-4 h-4" /></button>
+            )}
+            <input
+              id={`dish-img-${form.id || 'new'}`}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => handleChange('image', reader.result as string);
+                  reader.readAsDataURL(file);
+                }
+              }}
+            />
+          </div>
 
           {form.image && (
             <details className="group border border-white/5 rounded-2xl bg-black/40 text-left cursor-pointer outline-none marker:content-[''] overflow-hidden">
@@ -660,9 +692,10 @@ export function AdminPanel() {
                           <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Primera Imagen Opcional (Aspecto Platillo)</label>
                           <div className="bg-black border border-white/5 rounded-2xl p-6 space-y-4">
                             {renderImageInput('menuFeaturedImage', 'URL de la imagen...', 'menu-feat-img')}
+                            {renderImageControls('menuFeaturedImage')}
                             {editedConfig.menuFeaturedImage && (
                               <div className="w-full max-w-[350px] aspect-[4/3] rounded-[2rem] overflow-hidden border border-white/10 opacity-60">
-                                <img src={editedConfig.menuFeaturedImage} className="w-full h-full object-cover" />
+                                <img src={editedConfig.menuFeaturedImage} className="w-full h-full object-cover" style={getImgStyle('menuFeaturedImage')} />
                               </div>
                             )}
                           </div>
