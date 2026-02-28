@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, RotateCw, Eye, EyeOff, Trash2, Maximize2 } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useAuth } from '../context/AuthContext';
@@ -24,7 +24,7 @@ export function AdminPanel() {
   const [customerSearch, setCustomerSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
 
-  const [currentSection, setCurrentSection] = useState<'hero' | 'menu' | 'banner' | 'about' | 'footer' | 'design' | 'preview' | null>('preview');
+  const [currentSection, setCurrentSection] = useState<'hero' | 'menu' | 'banner' | 'about' | 'footer' | 'design' | 'preview' | 'backgrounds' | null>('preview');
   const [showSuccess, setShowSuccess] = useState(false);
   const [newCatName, setNewCatName] = useState('');
 
@@ -38,6 +38,88 @@ export function AdminPanel() {
       reader.readAsDataURL(file);
     }
   };
+
+  const renderImageInput = (key: keyof typeof config, placeholder: string, id: string) => (
+    <div className="flex gap-2 items-center">
+      {(editedConfig[key] as string)?.startsWith('data:') ? (
+        <div className="flex-1 bg-green-900/20 border border-green-500/30 rounded-xl px-4 py-3 text-[10px] text-green-400 font-bold flex items-center truncate">
+          ✓ ARCHIVO LOCAL CARGADO
+        </div>
+      ) : (
+        <input type="text" value={(editedConfig[key] as string) || ''} onChange={e => setEditedConfig({ ...editedConfig, [key]: e.target.value })} className="flex-1 bg-black border border-white/5 rounded-xl px-4 py-3 text-[10px] text-gray-400 focus:border-red-600 outline-none transition-all" placeholder={placeholder} />
+      )}
+      <button onClick={() => document.getElementById(id)?.click()} className="px-5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/5 transition-all h-[38px]">Subir</button>
+      {(editedConfig[key] as string) && (
+        <button onClick={() => setEditedConfig({ ...editedConfig, [key]: '' })} className="w-[38px] h-[38px] flex items-center justify-center bg-red-600/20 text-red-500 rounded-xl hover:bg-red-600 hover:text-white transition-all shrink-0"><Trash2 className="w-4 h-4" /></button>
+      )}
+      <input id={id} type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, [key]: url }))} />
+    </div>
+  );
+
+  const getImgStyle = (key: keyof typeof config) => {
+    const scale = (editedConfig[`${key}Scale` as keyof typeof config] as number) || 1;
+    const posX = (editedConfig[`${key}PositionX` as keyof typeof config] as number) ?? 50;
+    const posY = (editedConfig[`${key}PositionY` as keyof typeof config] as number) ?? 50;
+    const rotate = (editedConfig[`${key}Rotate` as keyof typeof config] as number) || 0;
+    return {
+      objectPosition: `${posX}% ${posY}%`,
+      transform: `scale(${scale}) rotate(${rotate}deg)`
+    };
+  };
+
+
+
+  const renderImageControls = (key: keyof typeof config) => {
+    if (!editedConfig[key]) return null;
+
+    const scaleKey = `${key}Scale` as keyof typeof config;
+    const posXKey = `${key}PositionX` as keyof typeof config;
+    const posYKey = `${key}PositionY` as keyof typeof config;
+
+    const currentScale = (editedConfig[scaleKey] as number) || 1;
+    const currentX = (editedConfig[posXKey] as number) !== undefined ? (editedConfig[posXKey] as number) : 50;
+    const currentY = (editedConfig[posYKey] as number) !== undefined ? (editedConfig[posYKey] as number) : 50;
+
+    return (
+      <details className="mt-4 group border border-white/5 rounded-xl bg-black/40 overflow-hidden outline-none">
+        <summary className="text-[9px] font-black uppercase text-white/50 tracking-widest p-4 cursor-pointer hover:bg-white/5 hover:text-white transition-all list-none flex items-center justify-between outline-none select-none">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Ajustar Imagen (Opcional)
+          </div>
+          <span className="text-white/30 group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        <div className="p-4 pt-2 space-y-6">
+          <div className="flex items-start justify-between">
+            <span className="text-[9px] font-black text-white/50 uppercase tracking-widest mt-2">Escala (Zoom)</span>
+            <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+              {[0.5, 0.75, 1, 1.5].map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); setEditedConfig({ ...editedConfig, [scaleKey]: s }); }}
+                  className={`w-10 h-8 rounded-lg text-[9px] font-black transition-all ${currentScale === s ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                >
+                  {s * 100}%
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-[9px] text-white/50 font-black uppercase"><span className="tracking-widest">Horizontal (X)</span> <span>{currentX}%</span></div>
+              <input type="range" min="0" max="100" value={currentX} onChange={e => setEditedConfig({ ...editedConfig, [posXKey]: parseInt(e.target.value) })} className="w-full accent-red-600 h-1.5 bg-white/10 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-500 [&::-webkit-slider-thumb]:rounded-full cursor-pointer hover:[&::-webkit-slider-thumb]:scale-125 transition-all" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-[9px] text-white/50 font-black uppercase"><span className="tracking-widest">Vertical (Y)</span> <span>{currentY}%</span></div>
+              <input type="range" min="0" max="100" value={currentY} onChange={e => setEditedConfig({ ...editedConfig, [posYKey]: parseInt(e.target.value) })} className="w-full accent-red-600 h-1.5 bg-white/10 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-500 [&::-webkit-slider-thumb]:rounded-full cursor-pointer hover:[&::-webkit-slider-thumb]:scale-125 transition-all" />
+            </div>
+          </div>
+        </div>
+      </details>
+    );
+  };
+
 
   // Sync edited config when entering the tab
   useEffect(() => {
@@ -321,6 +403,7 @@ export function AdminPanel() {
                   { id: 'banner', label: 'EDITAR BANNER', icon: '👨‍🍳' },
                   { id: 'about', label: 'EDITAR HISTORIA', icon: 'ℹ️' },
                   { id: 'footer', label: 'EDITAR DATOS', icon: '🔗' },
+                  { id: 'backgrounds', label: 'EDITAR FONDOS', icon: '🖼️' },
                   { id: 'design', label: 'LOGO Y TEMA', icon: '🎨' },
                 ].map(sec => (
                   <button
@@ -435,33 +518,77 @@ export function AdminPanel() {
                         </div>
                       </div>
                       <div className="xl:col-span-2 space-y-8">
-                        <div>
-                          <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Imagen de Fondo (Sección)</label>
-                          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/5 group bg-gray-900 shadow-2xl ring-1 ring-white/10 mt-3">
-                            <img src={editedConfig.heroBgImage} className="w-full h-full object-cover opacity-50 transition-transform duration-500 group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-black/40" />
-                            <div className="absolute inset-x-6 bottom-6 flex gap-2">
-                              <input type="text" value={editedConfig.heroBgImage} onChange={e => setEditedConfig({ ...editedConfig, heroBgImage: e.target.value })} className="flex-1 bg-black/80 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-[10px] text-white outline-none" placeholder="URL fondo..." />
-                              <button onClick={() => document.getElementById('hero-bg-input')?.click()} className="px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Buscar</button>
-                              <input id="hero-bg-input" type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, heroBgImage: url }))} />
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Imagen de Fondo (Sección Hero)</label>
+
+                          {editedConfig.heroBgImage ? (
+                            <div className="relative rounded-[2.5rem] overflow-hidden aspect-video border border-white/5 shadow-2xl ring-1 ring-white/10 transition-all duration-500">
+                              <img src={editedConfig.heroBgImage} className="w-full h-full object-cover transition-all" style={{ ...getImgStyle('heroBgImage'), opacity: editedConfig.heroBgImageHidden ? 0.2 : 0.6 }} />
+                              <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+
+                              <div className="absolute top-4 right-4 flex flex-wrap gap-2 z-30">
+                                <button onClick={() => setEditedConfig({ ...editedConfig, heroBgImageRotate: ((editedConfig.heroBgImageRotate || 0) + 90) % 360 })} className="p-2 bg-black/60 border border-white/10 rounded-lg text-white/70 hover:text-white"><RotateCw className="w-4 h-4" /></button>
+                                <button onClick={() => setEditedConfig({ ...editedConfig, heroBgImageHidden: !editedConfig.heroBgImageHidden })} className="p-2 bg-black/60 border border-white/10 rounded-lg text-white/70 hover:text-white">{editedConfig.heroBgImageHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                                <button onClick={() => setEditedConfig({ ...editedConfig, heroBgImage: '' })} className="p-2 bg-red-600/60 border border-red-600/30 rounded-lg text-white hover:bg-red-600"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+
+                              <div className="absolute inset-x-6 bottom-6 flex gap-2">
+                                <input type="text" value={editedConfig.heroBgImage} onChange={e => setEditedConfig({ ...editedConfig, heroBgImage: e.target.value })} className="flex-1 bg-black/80 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-[10px] text-white outline-none focus:border-red-600" />
+                                <button onClick={() => document.getElementById('hero-bg-file-1')?.click()} className="px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Cambiar</button>
+                                <input id="hero-bg-file-1" type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, heroBgImage: url }))} />
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="flex gap-2">
+                              <input type="text" value={editedConfig.heroBgImage || ''} onChange={e => setEditedConfig({ ...editedConfig, heroBgImage: e.target.value })} className="flex-1 bg-white/[0.03] border border-white/10 px-4 py-4 rounded-xl text-[10px] text-white outline-none focus:border-red-600" placeholder="Pega el enlace de la imagen de fondo..." />
+                              <button onClick={() => document.getElementById('hero-bg-file-2')?.click()} className="px-6 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Subir Fondo</button>
+                              <input id="hero-bg-file-2" type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, heroBgImage: url }))} />
+                            </div>
+                          )}
+                          {renderImageControls('heroBgImage')}
                         </div>
 
-                        <div>
-                          <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Imagen de Portada (Destacada)</label>
-                          <div className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-white/5 group bg-gray-900 shadow-2xl ring-1 ring-white/10 mt-3">
-                            <img src={editedConfig.heroImage} className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-[3000ms]" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                            <div className="absolute bottom-8 left-8 right-8 space-y-4">
-                              <p className="text-[9px] text-white/40 uppercase tracking-[0.2em] font-black leading-none">Previsualización de Portada</p>
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Logo de Hero (Opcional)</label>
+                          <div className={`relative rounded-[2.5rem] overflow-hidden border transition-all duration-500 bg-black/20 ${editedConfig.heroImage ? 'aspect-[4/5] shadow-2xl ring-1 ring-white/10 border-white/5' : 'min-h-[12rem] border-dashed border-white/10 flex flex-col items-center justify-center p-8'}`}>
+                            {editedConfig.heroBgImage && (
+                              <img src={editedConfig.heroBgImage} className="absolute inset-0 w-full h-full object-cover opacity-10 blur-[8px]" />
+                            )}
+
+                            {editedConfig.heroImage ? (
+                              <div className="relative h-full w-full p-12 flex items-center justify-center">
+                                <motion.img
+                                  src={editedConfig.heroImage}
+                                  className="max-h-full max-w-full object-contain rounded-2xl shadow-[0_30px_60px_-12px_rgba(0,0,0,0.8)] border border-white/10"
+                                  style={{ ...getImgStyle('heroImage'), opacity: editedConfig.heroImageHidden ? 0.2 : 1 }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/80 via-[#0a0a0a]/10 to-transparent pointer-events-none" />
+
+                                {/* Adjust Controls */}
+                                <div className="absolute top-6 right-6 flex flex-col gap-2 z-30">
+                                  <div className="flex flex-col gap-1">
+                                    <button onClick={() => setEditedConfig({ ...editedConfig, heroImageRotate: ((editedConfig.heroImageRotate || 0) + 90) % 360 })} className="w-12 h-12 flex items-center justify-center bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl text-white/50 hover:text-white transition-all"><RotateCw className="w-4 h-4" /></button>
+                                    <button onClick={() => setEditedConfig({ ...editedConfig, heroImageHidden: !editedConfig.heroImageHidden })} className="w-12 h-12 flex items-center justify-center bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl text-white/50 hover:text-white transition-all">{editedConfig.heroImageHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                                    <button onClick={() => setEditedConfig({ ...editedConfig, heroImage: '' })} className="w-12 h-12 flex items-center justify-center bg-red-600/40 border border-red-600/20 rounded-xl text-white hover:bg-red-600 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center justify-center relative z-10 opacity-30">
+                                <Maximize2 className="w-6 h-6 mb-2" />
+                                <div className="text-[10px] font-black uppercase tracking-[0.2em]">Sube una Promo o Portada</div>
+                              </div>
+                            )}
+
+                            <div className={`p-6 bg-black/60 backdrop-blur-xl border-t border-white/5 relative z-20 ${editedConfig.heroImage ? 'absolute bottom-0 left-0 right-0' : 'w-full mt-auto'}`}>
                               <div className="flex gap-2">
-                                <input type="text" value={editedConfig.heroImage} onChange={e => setEditedConfig({ ...editedConfig, heroImage: e.target.value })} className="flex-1 bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-3 rounded-xl text-[10px] text-white outline-none focus:border-red-600" placeholder="Pega el enlace de la imagen..." />
-                                <button onClick={() => document.getElementById('hero-img-input')?.click()} className="px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Buscar</button>
-                                <input id="hero-img-input" type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, heroImage: url }))} />
+                                <input type="text" value={editedConfig.heroImage || ''} onChange={e => setEditedConfig({ ...editedConfig, heroImage: e.target.value })} className="flex-1 bg-white/[0.03] border border-white/10 px-4 py-3 rounded-xl text-[10px] text-white outline-none focus:border-red-600 focus:bg-white/10 transition-all" placeholder="URL de la imagen destacada..." />
+                                <button onClick={() => document.getElementById(editedConfig.heroImage ? 'hero-img-file-1' : 'hero-img-file-2')?.click()} className="px-5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Subir</button>
+                                <input id={editedConfig.heroImage ? 'hero-img-file-1' : 'hero-img-file-2'} type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, heroImage: url }))} />
                               </div>
                             </div>
                           </div>
+                          {renderImageControls('heroImage')}
                         </div>
                       </div>
                     </div>
@@ -478,7 +605,19 @@ export function AdminPanel() {
                           <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Eslogan del Menú</label>
                           <input type="text" value={editedConfig.menuSubtitle} onChange={e => setEditedConfig({ ...editedConfig, menuSubtitle: e.target.value })} className="w-full bg-black border border-white/5 rounded-2xl px-6 py-5 text-gray-400 font-medium" />
                         </div>
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Primera Imagen Opcional (Aspecto Platillo)</label>
+                          <div className="bg-black border border-white/5 rounded-2xl p-6 space-y-4">
+                            {renderImageInput('menuFeaturedImage', 'URL de la imagen...', 'menu-feat-img')}
+                            {editedConfig.menuFeaturedImage && (
+                              <div className="w-full max-w-[350px] aspect-[4/3] rounded-[2rem] overflow-hidden border border-white/10 opacity-60">
+                                <img src={editedConfig.menuFeaturedImage} className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
+
 
                       <div className="p-10 bg-white/[0.02] rounded-[2.5rem] border border-white/5 space-y-8">
                         <div>
@@ -538,13 +677,12 @@ export function AdminPanel() {
                       </div>
                       <div className="space-y-6">
                         <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Imagen del Chef/Plato Principal</label>
-                        <div className="h-80 bg-red-600 rounded-[2.5rem] overflow-hidden flex items-center justify-center p-8 border border-white/10 relative group">
-                          <img src={editedConfig.bannerChefImage} className="max-h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute inset-x-8 bottom-8 flex gap-2">
-                            <input type="text" value={editedConfig.bannerChefImage} onChange={e => setEditedConfig({ ...editedConfig, bannerChefImage: e.target.value })} className="flex-1 bg-black/80 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-[10px] text-white outline-none" placeholder="URL imagen..." />
-                            <button onClick={() => document.getElementById('banner-img-input')?.click()} className="px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Buscar</button>
-                            <input id="banner-img-input" type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, bannerChefImage: url }))} />
+                        <div className="space-y-4">
+                          <div className="h-80 rounded-[2.5rem] overflow-hidden bg-white/5 flex items-center justify-center border border-white/10 relative group">
+                            <img src={editedConfig.bannerChefImage} className="w-full h-full object-cover drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-transform duration-500" style={getImgStyle('bannerChefImage')} />
                           </div>
+                          {renderImageInput('bannerChefImage', 'URL imagen Chef...', 'banner-img-input')}
+                          {renderImageControls('bannerChefImage')}
                         </div>
                       </div>
                     </div>
@@ -568,23 +706,17 @@ export function AdminPanel() {
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-4">
                               <div className="aspect-square rounded-[2rem] overflow-hidden border border-white/5 bg-gray-900 ring-1 ring-white/10">
-                                <img src={editedConfig.aboutImage1} className="w-full h-full object-cover" />
+                                <img src={editedConfig.aboutImage1} className="w-full h-full object-cover" style={getImgStyle('aboutImage1')} />
                               </div>
-                              <div className="flex gap-2">
-                                <input type="text" value={editedConfig.aboutImage1} onChange={e => setEditedConfig({ ...editedConfig, aboutImage1: e.target.value })} className="flex-1 bg-black border border-white/5 rounded-xl px-3 py-2 text-[9px] text-gray-500 uppercase tracking-widest font-black" />
-                                <button onClick={() => document.getElementById('about1-img-input')?.click()} className="px-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[8px] font-black uppercase tracking-widest border border-white/5">Buscar</button>
-                                <input id="about1-img-input" type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, aboutImage1: url }))} />
-                              </div>
+                              {renderImageInput('aboutImage1', 'URL imagen 1...', 'about1-img-input')}
+                              {renderImageControls('aboutImage1')}
                             </div>
                             <div className="space-y-4">
                               <div className="aspect-square rounded-[2rem] overflow-hidden border border-white/5 bg-gray-900 ring-1 ring-white/10">
-                                <img src={editedConfig.aboutImage2} className="w-full h-full object-cover" />
+                                <img src={editedConfig.aboutImage2} className="w-full h-full object-cover" style={getImgStyle('aboutImage2')} />
                               </div>
-                              <div className="flex gap-2">
-                                <input type="text" value={editedConfig.aboutImage2} onChange={e => setEditedConfig({ ...editedConfig, aboutImage2: e.target.value })} className="flex-1 bg-black border border-white/5 rounded-xl px-3 py-2 text-[9px] text-gray-500 uppercase tracking-widest font-black" />
-                                <button onClick={() => document.getElementById('about2-img-input')?.click()} className="px-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[8px] font-black uppercase tracking-widest border border-white/5">Buscar</button>
-                                <input id="about2-img-input" type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, aboutImage2: url }))} />
-                              </div>
+                              {renderImageInput('aboutImage2', 'URL imagen 2...', 'about2-img-input')}
+                              {renderImageControls('aboutImage2')}
                             </div>
                           </div>
 
@@ -679,17 +811,80 @@ export function AdminPanel() {
 
                       <div className="p-10 bg-white/[0.02] rounded-[2.5rem] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-12">
                         <div className="flex-1 space-y-4">
-                          <h5 className="text-xl font-black italic tracking-tighter text-white uppercase">Logo de Marca</h5>
-                          <p className="text-xs text-gray-500 font-medium">Este logo se mostrará en el encabezado y pie de página de todo el sitio.</p>
-                          <div className="flex gap-3">
-                            <input type="text" value={editedConfig.logo} onChange={e => setEditedConfig({ ...editedConfig, logo: e.target.value })} className="flex-1 bg-black border border-white/5 rounded-2xl px-6 py-5 text-[10px] text-gray-500 font-black uppercase tracking-widest focus:text-white transition-colors" placeholder="URL del logo..." />
-                            <button onClick={() => document.getElementById('logo-img-input')?.click()} className="px-8 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest border border-white/5 transition-all">Buscar Logo</button>
-                            <input id="logo-img-input" type="file" className="hidden" accept="image/*" onChange={e => handleImageUpload(e, (url) => setEditedConfig({ ...editedConfig, logo: url }))} />
+                          <h5 className="text-xl font-black italic tracking-tighter text-white uppercase">Fondo Global (Sitio Completo)</h5>
+                          <p className="text-xs text-gray-500 font-medium tracking-tight leading-relaxed">Este fondo se verá en todo el sitio, detrás de las secciones transparentes. Úsalo para dar una atmósfera única a tu restaurante.</p>
+                          {renderImageInput('globalBgImage', 'URL fondo global...', 'global-bg-file')}
+                          {renderImageControls('globalBgImage')}
+                        </div>
+                        <div className="w-56 h-32 rounded-3xl overflow-hidden border border-white/10 relative shadow-2xl group">
+                          {editedConfig.globalBgImage && <img src={editedConfig.globalBgImage} className="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 scale-110 group-hover:scale-100" style={getImgStyle('globalBgImage')} />}
+                          {!editedConfig.globalBgImage && <div className="absolute inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center text-[10px] font-black uppercase text-gray-600 tracking-widest">Sin Fondo Global</div>}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">VISTA PREVIA</span>
                           </div>
                         </div>
+                      </div>
+
+                      <div className="p-10 bg-white/[0.02] rounded-[2.5rem] border border-white/5 flex flex-col md:flex-row items-center justify-between gap-12">
+                        <div className="flex-1 space-y-4">
+                          <h5 className="text-xl font-black italic tracking-tighter text-white uppercase">Logo de Marca</h5>
+                          <p className="text-xs text-gray-500 font-medium">Este logo se mostrará en el encabezado y pie de página de todo el sitio.</p>
+                          {renderImageInput('logo', 'URL del logo...', 'logo-img-input')}
+                          {renderImageControls('logo')}
+                        </div>
                         <div className="w-48 h-48 bg-black rounded-[2rem] p-8 border border-white/10 flex items-center justify-center shadow-2xl relative group">
-                          <img src={editedConfig.logo || '/logo.jpg'} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" />
+                          <img src={editedConfig.logo || '/logo.jpg'} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" style={getImgStyle('logo')} />
                           <div className="absolute inset-x-8 -bottom-4 bg-red-600 text-white text-[8px] font-black uppercase tracking-[0.2em] py-2 rounded-full text-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">PREVISUALIZACIÓN</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentSection === 'backgrounds' && (
+                    <div className="space-y-12 animate-in fade-in slide-in-from-right-8 duration-500">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        {/* Global Background */}
+                        <div className="p-10 bg-white/[0.02] rounded-[2.5rem] border border-white/5 space-y-6">
+                          <div>
+                            <h5 className="text-xl font-black italic tracking-tighter text-white uppercase mb-2">Fondo Principal (Global)</h5>
+                            <p className="text-xs text-gray-500 font-medium mb-6">Esta imagen se ve detrás de todas las secciones si no tienen una propia.</p>
+                            {renderImageInput('globalBgImage', 'URL fondo global...', 'global-bg-input')}
+                            {renderImageControls('globalBgImage')}
+                          </div>
+                          <div className="aspect-video bg-black rounded-2xl border border-white/10 overflow-hidden relative group">
+                            <img src={editedConfig.globalBgImage || '/interior.jpg'} className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" style={getImgStyle('globalBgImage')} />
+                            <div className="absolute inset-x-8 -bottom-4 bg-red-600 text-white text-[8px] font-black uppercase tracking-[0.2em] py-2 rounded-full text-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">FONDO DEL SITIO</div>
+                          </div>
+                        </div>
+
+                        {/* Section Overrides */}
+                        <div className="space-y-6">
+                          <div className="p-8 bg-white/[0.02] rounded-[2.5rem] border border-white/5 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <h5 className="text-xs font-black italic tracking-widest text-red-500 uppercase">Fondo Sección HERO</h5>
+                              {!editedConfig.heroBgImage && <span className="text-[8px] font-bold text-gray-600 uppercase border border-white/10 px-2 py-1 rounded">Usando Global</span>}
+                            </div>
+                            {renderImageInput('heroBgImage', 'Fondo del Hero...', 'hero-bg-up-f')}
+                            {renderImageControls('heroBgImage')}
+                          </div>
+
+                          <div className="p-8 bg-white/[0.02] rounded-[2.5rem] border border-white/5 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <h5 className="text-xs font-black italic tracking-widest text-red-500 uppercase">Fondo Sección MENÚ</h5>
+                              {!editedConfig.menuBgImage && <span className="text-[8px] font-bold text-gray-600 uppercase border border-white/10 px-2 py-1 rounded">Usando Global</span>}
+                            </div>
+                            {renderImageInput('menuBgImage', 'Fondo del Menú...', 'menu-bg-up-f')}
+                            {renderImageControls('menuBgImage')}
+                          </div>
+
+                          <div className="p-8 bg-white/[0.02] rounded-[2.5rem] border border-white/5 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <h5 className="text-xs font-black italic tracking-widest text-red-500 uppercase">Fondo Sección HISTORIA</h5>
+                              {!editedConfig.aboutBgImage && <span className="text-[8px] font-bold text-gray-600 uppercase border border-white/10 px-2 py-1 rounded">Usando Global</span>}
+                            </div>
+                            {renderImageInput('aboutBgImage', 'Fondo de Historia...', 'about-bg-up-f')}
+                            {renderImageControls('aboutBgImage')}
+                          </div>
                         </div>
                       </div>
                     </div>

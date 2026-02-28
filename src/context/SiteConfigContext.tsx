@@ -13,14 +13,31 @@ export interface SiteConfig {
   heroButton2?: string;
   heroSubtitle: string;
   heroImage: string;
+  heroImageScale?: number;
+  heroImagePositionX?: number;
+  heroImagePositionY?: number;
+  heroImageRotate?: number;
+  heroImageHidden?: boolean;
   heroBgImage?: string;
+  heroBgImageScale?: number;
+  heroBgImagePositionX?: number;
+  heroBgImagePositionY?: number;
+  heroBgImageRotate?: number;
+  heroBgImageHidden?: boolean;
 
   // Menu Section
   menuTitle?: string;
   menuSubtitle?: string;
+  menuFeaturedImage?: string;
+  menuFeaturedImageScale?: number;
+  menuFeaturedImagePositionX?: number;
+  menuFeaturedImagePositionY?: number;
 
   // Featured Banner
   bannerChefImage?: string;
+  bannerChefImageScale?: number;
+  bannerChefImagePositionX?: number;
+  bannerChefImagePositionY?: number;
   bannerTitle?: string;
   bannerDescription?: string;
 
@@ -29,7 +46,13 @@ export interface SiteConfig {
   aboutSubtitle?: string;
   aboutUs: string;
   aboutImage1?: string;
+  aboutImage1Scale?: number;
+  aboutImage1PositionX?: number;
+  aboutImage1PositionY?: number;
   aboutImage2?: string;
+  aboutImage2Scale?: number;
+  aboutImage2PositionX?: number;
+  aboutImage2PositionY?: number;
   stat1Title?: string;
   stat2Title?: string;
 
@@ -40,6 +63,21 @@ export interface SiteConfig {
   address: string;
   coords?: { lat: number; lng: number } | null;
   logo?: string;
+  logoScale?: number;
+  logoPositionX?: number;
+  logoPositionY?: number;
+  globalBgImage?: string;
+  globalBgImageScale?: number;
+  globalBgImagePositionX?: number;
+  globalBgImagePositionY?: number;
+  menuBgImage?: string;
+  menuBgImageScale?: number;
+  menuBgImagePositionX?: number;
+  menuBgImagePositionY?: number;
+  aboutBgImage?: string;
+  aboutBgImageScale?: number;
+  aboutBgImagePositionX?: number;
+  aboutBgImagePositionY?: number;
 
   // Theme
   primaryColor?: string;
@@ -70,11 +108,18 @@ const defaultConfig: SiteConfig = {
   heroButton2: 'Hacer Pedido',
   heroSubtitle: 'Dumplings artesanales hechos con amor y las mejores recetas tradicionales asiáticas',
   heroImage: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=1920&h=1080&fit=crop",
+  heroImageScale: 1,
+  heroImageRotate: 0,
+  heroImageHidden: false,
   heroBgImage: "https://images.unsplash.com/photo-1514516348920-f319999a5e82?w=1920&h=1080&fit=crop",
+  heroBgImageScale: 1,
+  heroBgImageRotate: 0,
+  heroBgImageHidden: false,
 
   // Menu
   menuTitle: 'MENÚ TRADICIONAL',
   menuSubtitle: 'Nuestra Selección',
+  menuFeaturedImage: '',
 
   // Banner
   bannerChefImage: '/chef.jpg',
@@ -109,6 +154,9 @@ const defaultConfig: SiteConfig = {
   ],
   navLabels: ['Inicio', 'Menú', 'Nosotros', 'Contacto'],
   logo: '',
+  globalBgImage: '/interior.jpg',
+  menuBgImage: '',
+  aboutBgImage: '',
   copyright: '© 2024 Dumpling House. Todos los derechos reservados.',
 };
 

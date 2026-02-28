@@ -1,0 +1,2 @@
+﻿src/context/CustomerContext.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/context/OrderContext.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
