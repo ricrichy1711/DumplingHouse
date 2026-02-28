@@ -232,18 +232,69 @@ export function AdminPanel() {
             />
           </div>
         </div>
-        <div>
+        <div className="space-y-4 pt-4 border-t border-gray-700">
           <label className="block text-sm font-medium text-gray-300 mb-1">Imagen (URL)</label>
+
+          {form.image && (
+            <div className="w-full max-w-[200px] aspect-square rounded-2xl overflow-hidden border border-white/10 mx-auto group bg-black">
+              <img
+                src={form.image}
+                className="w-full h-full object-cover"
+                style={{
+                  transform: `scale(${form.imageScale || 1})`,
+                  objectPosition: `${form.imagePositionX ?? 50}% ${form.imagePositionY ?? 50}%`
+                }}
+              />
+            </div>
+          )}
+
           <input
             type="text"
             value={form.image}
             onChange={e => handleChange('image', e.target.value)}
             className="w-full px-4 py-2 border border-gray-700 rounded bg-gray-800 text-white"
+            placeholder="Pega el enlace de la imagen..."
           />
+
+          {form.image && (
+            <details className="group border border-white/5 rounded-2xl bg-black/40 text-left cursor-pointer outline-none marker:content-[''] overflow-hidden">
+              <summary className="px-6 py-3 flex items-center justify-between text-xs font-black uppercase tracking-widest text-red-500 bg-white/[0.02] hover:bg-white/[0.05] transition-colors">
+                <span>Ajustar Encuadre</span>
+                <span className="text-white/30 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="p-4 pt-2 space-y-6">
+                <div className="flex items-start justify-between">
+                  <span className="text-[9px] font-black text-white/50 uppercase tracking-widest mt-2">Escala (Zoom)</span>
+                  <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+                    {[0.5, 0.75, 1, 1.5].map(s => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); handleChange('imageScale', s); }}
+                        className={`w-10 h-8 rounded-lg text-[9px] font-black transition-all ${(form.imageScale || 1) === s ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                      >
+                        {s * 100}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[9px] text-white/50 font-black uppercase"><span className="tracking-widest">Horizontal (X)</span> <span>{form.imagePositionX ?? 50}%</span></div>
+                    <input type="range" min="0" max="100" value={form.imagePositionX ?? 50} onChange={e => handleChange('imagePositionX', parseInt(e.target.value))} className="w-full accent-red-600 h-1.5 bg-white/10 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-500 [&::-webkit-slider-thumb]:rounded-full cursor-pointer hover:[&::-webkit-slider-thumb]:scale-125 transition-all" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[9px] text-white/50 font-black uppercase"><span className="tracking-widest">Vertical (Y)</span> <span>{form.imagePositionY ?? 50}%</span></div>
+                    <input type="range" min="0" max="100" value={form.imagePositionY ?? 50} onChange={e => handleChange('imagePositionY', parseInt(e.target.value))} className="w-full accent-red-600 h-1.5 bg-white/10 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-500 [&::-webkit-slider-thumb]:rounded-full cursor-pointer hover:[&::-webkit-slider-thumb]:scale-125 transition-all" />
+                  </div>
+                </div>
+              </div>
+            </details>
+          )}
         </div>
-        <div className="flex gap-4 justify-end">
-          <button onClick={onCancel} className="px-4 py-2 border border-gray-700 rounded text-gray-300">Cancelar</button>
-          <button onClick={handleSubmit} className="px-4 py-2 bg-red-600 text-white rounded">Guardar</button>
+        <div className="flex gap-4 justify-end pt-4">
+          <button onClick={onCancel} className="px-6 py-2 border border-gray-700 hover:bg-white/5 transition-colors rounded-xl text-xs font-bold uppercase tracking-widest text-gray-300">Cancelar</button>
+          <button onClick={handleSubmit} className="px-6 py-2 bg-red-600 hover:bg-red-700 transition-colors text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-xl shadow-red-600/20">Guardar Platillo</button>
         </div>
       </div>
     );

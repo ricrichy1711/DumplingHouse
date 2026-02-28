@@ -10,6 +10,9 @@ export interface MenuItem {
   // whether the item is currently available for ordering
   disabled?: boolean;
   sort_order?: number;
+  imageScale?: number;
+  imagePositionX?: number;
+  imagePositionY?: number;
 }
 
 export interface MenuCategory {

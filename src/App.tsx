@@ -268,7 +268,7 @@ function SiteContent() {
             </div>
 
             {/* Featured Image / Carousel Row - Bottom aligned so image stretches UPWARDS */}
-            <div className="flex flex-col-reverse xl:flex-row items-center xl:items-end gap-8 lg:gap-10">
+            <div className="flex flex-col xl:flex-row items-center xl:items-end gap-8 lg:gap-10 w-full overflow-hidden">
 
               {/* Image only slightly larger than 300px dish, extra height goes up */}
               {config.menuFeaturedImage && (
@@ -294,6 +294,10 @@ function SiteContent() {
                           <img
                             src={item.image}
                             alt={item.name}
+                            style={{
+                              transform: `scale(${item.imageScale || 1})`,
+                              objectPosition: `${item.imagePositionX ?? 50}% ${item.imagePositionY ?? 50}%`
+                            }}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110"
                           />
                           <div className="absolute top-4 right-4 bg-red-600 text-white font-bold px-3 py-1 rounded-full text-sm shadow-xl">

@@ -170,7 +170,7 @@ export function SitePreview({ config, menuItems: MENU_ITEMS }: SitePreviewProps)
                         </div>
 
                         {/* Featured Image / Carousel Row - Bottom aligned so image stretches UPWARDS */}
-                        <div className="flex flex-col-reverse xl:flex-row items-center xl:items-end gap-4 lg:gap-8">
+                        <div className="flex flex-col xl:flex-row items-center xl:items-end gap-4 lg:gap-8 w-full overflow-hidden">
                             {/* Image only slightly larger than dish, extra height goes up */}
                             {config.menuFeaturedImage && (
                                 <div className="w-full xl:w-[260px] shrink-0 rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
@@ -191,7 +191,7 @@ export function SitePreview({ config, menuItems: MENU_ITEMS }: SitePreviewProps)
                                                 className="min-w-[80vw] sm:min-w-[190px] shrink-0 snap-center bg-[#151515] rounded-3xl overflow-hidden border border-white/5 group/card"
                                             >
                                                 <div className="relative h-40 overflow-hidden">
-                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110" />
+                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110" style={{ transform: `scale(${item.imageScale || 1})`, objectPosition: `${item.imagePositionX ?? 50}% ${item.imagePositionY ?? 50}%` }} />
                                                     <div className="absolute top-3 right-3 bg-red-600 text-white font-bold px-2.5 py-1 rounded-full text-[10px]">
                                                         ${item.price.toFixed(2)}
                                                     </div>
