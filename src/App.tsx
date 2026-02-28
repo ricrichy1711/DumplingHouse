@@ -75,7 +75,8 @@ function SiteContent() {
     const posY = (config[`${key}PositionY` as keyof typeof config] as number) ?? 50;
     return {
       backgroundPosition: `${posX}% ${posY}%`,
-      backgroundSize: scale === 1 ? 'cover' : `${scale * 100}%`
+      backgroundSize: scale === 1 ? 'cover' : `${scale * 100}%`,
+      backgroundAttachment: 'fixed' as const
     };
   };
   const addToCart = (item: MenuItem) => {
@@ -243,40 +244,47 @@ function SiteContent() {
           }}
         >
           {config.menuBgImage && <div className="absolute inset-0 bg-black/70 z-0" />}
-          <div className="relative max-w-7xl mx-auto z-10">
-            {/* Headers and Filters are back on TOP */}
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
-              <div className="max-w-xl">
-                <h2 className="text-red-600 font-bold tracking-widest mb-2 text-sm uppercase">{config.menuSubtitle || 'Nuestra Selección'}</h2>
-                <h3 className="text-4xl md:text-5xl font-bold">{config.menuTitle || 'MENÚ TRADICIONAL'}</h3>
-              </div>
+          <div className="relative max-w-7xl mx-auto z-10 flex flex-col gap-10">
+            {/* 1. Headers */}
+            <div className="max-w-xl">
+              <h2 className="text-red-600 font-bold tracking-widest mb-2 text-sm uppercase">{config.menuSubtitle || 'Nuestra Selección'}</h2>
+              <h3 className="text-4xl md:text-5xl font-bold">{config.menuTitle || 'MENÚ TRADICIONAL'}</h3>
+            </div>
 
-              <div className="flex flex-wrap gap-4 overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
+            {/* 2. Featured Image */}
+            {config.menuFeaturedImage && (
+              <div className="w-full h-[250px] md:h-[400px] rounded-3xl overflow-hidden border border-white/5 shadow-2xl mb-2">
+                <img
+                  src={config.menuFeaturedImage}
+                  className="w-full h-full object-cover"
+                  alt="Menu Destacado"
+                  style={{
+                    objectPosition: `${config.menuFeaturedImagePositionX ?? 50}% ${config.menuFeaturedImagePositionY ?? 50}%`,
+                    transform: `scale(${config.menuFeaturedImageScale || 1})`
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Content Flex Container */}
+            <div className="w-full flex-1 flex flex-col md:flex-row min-w-0 gap-6 lg:gap-10">
+              {/* 3. Categories */}
+              <div className="flex flex-row md:flex-col flex-wrap md:flex-nowrap gap-3 overflow-x-auto md:w-56 shrink-0 pb-4 md:pb-0 scrollbar-hide items-start">
                 {categories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-6 py-2 rounded-full text-sm font-bold transition-all border whitespace-nowrap ${activeCategory === cat
+                    className={`px-6 py-2 md:py-3 rounded-full md:rounded-xl text-sm font-bold transition-all border whitespace-nowrap md:w-full md:text-left ${activeCategory === cat
                       ? 'bg-red-600 border-red-600 text-white'
-                      : 'bg-transparent border-white/20 text-gray-400 hover:border-red-500 hover:text-white'
+                      : 'bg-transparent border-white/20 text-gray-400 hover:border-red-500 hover:text-white hover:bg-white/5'
                       }`}
                   >
                     {cat}
                   </button>
                 ))}
               </div>
-            </div>
 
-            {/* Featured Image / Carousel Row - Bottom aligned so image stretches UPWARDS */}
-            <div className="flex flex-col xl:flex-row items-center xl:items-end gap-8 lg:gap-10 w-full overflow-hidden">
-
-              {/* Image only slightly larger than 300px dish, extra height goes up */}
-              {config.menuFeaturedImage && (
-                <div className="w-full xl:w-[360px] shrink-0 rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
-                  <img src={config.menuFeaturedImage} className="w-full h-full object-cover min-h-[350px] xl:min-h-[500px] max-h-[600px]" alt="Menu Destacado" style={{ objectPosition: `${config.menuFeaturedImagePositionX ?? 50}% ${config.menuFeaturedImagePositionY ?? 50}%`, transform: `scale(${config.menuFeaturedImageScale || 1})` }} />
-                </div>
-              )}
-
+              {/* 4. Dishes Carousel */}
               <div className="relative group/carousel flex-1 min-w-0">
                 <div id="dishes-carousel" className="flex gap-8 overflow-x-auto snap-x scrollbar-hide pb-8 scroll-smooth will-change-transform items-stretch h-full">
                   <AnimatePresence mode="wait">
@@ -288,7 +296,7 @@ function SiteContent() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3 }}
-                        className="min-w-[80vw] sm:min-w-[280px] md:min-w-[300px] max-w-[300px] shrink-0 snap-center bg-[#151515] rounded-3xl overflow-hidden border border-white/5 hover:border-red-900/50 transition-all group/card"
+                        className="min-w-[80vw] sm:min-w-[280px] md:min-w-[300px] max-w-[300px] shrink-0 snap-center bg-[#151515] rounded-3xl overflow-hidden border border-white/5 hover:border-red-900/50 transition-all group/card shadow-2xl"
                       >
                         <div className="relative h-64 overflow-hidden">
                           <img
@@ -322,12 +330,12 @@ function SiteContent() {
                   </AnimatePresence>
                 </div>
 
-                {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).length > 2 && (
+                {MENU_ITEMS.filter(i => !i.disabled && (activeCategory === 'Todos' || i.category === activeCategory)).length > 1 && (
                   <>
-                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: -380, behavior: 'smooth' })} className="flex absolute left-2 md:-left-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 md:opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
+                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: -380, behavior: 'smooth' })} className="flex absolute left-2 md:-left-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 backdrop-blur-md">
                       <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
-                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: 380, behavior: 'smooth' })} className="flex absolute right-2 md:-right-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 md:opacity-0 group-hover/carousel:opacity-100 backdrop-blur-md">
+                    <button onClick={() => document.getElementById('dishes-carousel')?.scrollBy({ left: 380, behavior: 'smooth' })} className="flex absolute right-2 md:-right-6 top-[40%] -translate-y-1/2 w-10 h-10 md:w-14 md:h-14 bg-black/95 border border-white/10 rounded-full items-center justify-center text-white hover:bg-red-600 hover:scale-110 transition-all z-30 shadow-[0_0_40px_rgba(0,0,0,0.8)] opacity-100 backdrop-blur-md">
                       <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
                   </>
@@ -338,7 +346,7 @@ function SiteContent() {
         </section>
 
         <section
-          className="relative bg-cover bg-top md:bg-fixed bg-[length:120%] py-16 px-4"
+          className="relative bg-cover bg-top bg-fixed bg-[length:120%] py-16 px-4"
           style={{ backgroundImage: `url(${config.heroImage || '/interior.jpg'})` }}
         >
           <div className="absolute inset-0 bg-red-600/90"></div>
@@ -368,7 +376,6 @@ function SiteContent() {
           className="py-20 px-4 relative transition-all duration-700"
           style={{
             backgroundImage: config.aboutBgImage ? `url(${config.aboutBgImage})` : 'none',
-            backgroundAttachment: 'fixed',
             ...getBgStyle('aboutBgImage')
           }}
         >
