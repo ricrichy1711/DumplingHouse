@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { supabase } from '../utils/supabase';
 
 export interface SiteConfig {
   brandName: string;
@@ -113,51 +114,80 @@ const defaultConfig: SiteConfig = {
 
 const SiteConfigContext = createContext<{
   config: SiteConfig;
-  setConfig: (next: Partial<SiteConfig>) => void;
-  resetConfig: () => void;
+  setConfig: (next: Partial<SiteConfig>) => Promise<void>;
+  resetConfig: () => Promise<void>;
+  isLoading: boolean;
+  isPublishing: boolean;
 } | undefined>(undefined);
 
 export function SiteConfigProvider({ children }: { children: ReactNode }) {
-  const [config, setConfigState] = useState<SiteConfig>(() => {
-    try {
-      const raw = localStorage.getItem('site_config');
-      if (raw) return JSON.parse(raw) as SiteConfig;
-    } catch (e) {
-      // ignore
-    }
-    return defaultConfig;
-  });
+  const [config, setConfigState] = useState<SiteConfig>(defaultConfig);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPublishing, setIsPublishing] = useState(false);
 
+  // Load from Supabase on mount
   useEffect(() => {
-    try {
-      localStorage.setItem('site_config', JSON.stringify(config));
-    } catch (e) {
-      // ignore
+    async function loadConfig() {
+      try {
+        const { data, error } = await supabase
+          .from('site_configs')
+          .select('config_data')
+          .eq('id', 1)
+          .single();
+
+        if (error) {
+          console.error('Error loading config from Supabase:', error);
+        } else if (data && Object.keys(data.config_data).length > 0) {
+          setConfigState(prev => ({ ...prev, ...data.config_data }));
+        }
+      } catch (e) {
+        console.error('Caught error loading config:', e);
+      } finally {
+        setIsLoading(false);
+      }
     }
+    loadConfig();
+  }, []);
+
+  // Sync to localStorage as backup
+  useEffect(() => {
+    localStorage.setItem('site_config', JSON.stringify(config));
   }, [config]);
 
   // Apply CSS variables for theme colors
   useEffect(() => {
-    try {
-      const root = document.documentElement;
-      if (config.btnGradientStart) root.style.setProperty('--btn-start', config.btnGradientStart);
-      if (config.btnGradientEnd) root.style.setProperty('--btn-end', config.btnGradientEnd);
-      if (config.accentColor) root.style.setProperty('--accent', config.accentColor);
-      if (config.highlightColor) root.style.setProperty('--highlight', config.highlightColor);
-      if (config.primaryColor) root.style.setProperty('--primary', config.primaryColor);
-    } catch (e) {
-      // ignore
-    }
+    const root = document.documentElement;
+    if (config.btnGradientStart) root.style.setProperty('--btn-start', config.btnGradientStart);
+    if (config.btnGradientEnd) root.style.setProperty('--btn-end', config.btnGradientEnd);
+    if (config.accentColor) root.style.setProperty('--accent', config.accentColor);
+    if (config.highlightColor) root.style.setProperty('--highlight', config.highlightColor);
+    if (config.primaryColor) root.style.setProperty('--primary', config.primaryColor);
   }, [config]);
 
-  const setConfig = (next: Partial<SiteConfig>) => {
-    setConfigState(prev => ({ ...prev, ...next }));
+  const setConfig = async (next: Partial<SiteConfig>) => {
+    const newConfig = { ...config, ...next };
+    setConfigState(newConfig);
+
+    setIsPublishing(true);
+    try {
+      const { error } = await supabase
+        .from('site_configs')
+        .upsert({ id: 1, config_data: newConfig, updated_at: new Date().toISOString() });
+
+      if (error) throw error;
+    } catch (e) {
+      console.error('Error publishing config to Supabase:', e);
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
-  const resetConfig = () => setConfigState(defaultConfig);
+  const resetConfig = async () => {
+    await setConfig(defaultConfig);
+  };
 
   return (
-    <SiteConfigContext.Provider value={{ config, setConfig, resetConfig }}>
+    <SiteConfigContext.Provider value={{ config, setConfig, resetConfig, isLoading, isPublishing }}>
       {children}
     </SiteConfigContext.Provider>
   );

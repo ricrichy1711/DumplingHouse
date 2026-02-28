@@ -9,7 +9,7 @@ import { MenuItem } from '../types';
 import { SitePreview } from './SitePreview';
 
 export function AdminPanel() {
-  const { config, setConfig } = useSiteConfig();
+  const { config, setConfig, isPublishing } = useSiteConfig();
   const { logout } = useAuth();
   const { items, updateItem, addItem, removeItem, toggleAvailability } = useMenu();
   const { orders, updateOrder } = useOrders();
@@ -23,6 +23,7 @@ export function AdminPanel() {
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
 
   const [currentSection, setCurrentSection] = useState<'hero' | 'menu' | 'banner' | 'about' | 'footer' | 'design' | 'preview' | null>('preview');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
     const file = e.target.files?.[0];
@@ -341,10 +342,36 @@ export function AdminPanel() {
               </nav>
               <div className="p-8 border-t border-white/5 bg-white/[0.01]">
                 <button
-                  onClick={() => setConfig(editedConfig)}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-600/30 transition-all active:scale-95 uppercase tracking-widest text-xs"
+                  onClick={async () => {
+                    await setConfig(editedConfig);
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 3000);
+                  }}
+                  disabled={isPublishing}
+                  className={`w-full ${isPublishing ? 'bg-gray-700' : 'bg-red-600 hover:bg-red-700'} text-white font-black py-4 rounded-2xl shadow-xl shadow-red-600/30 transition-all active:scale-95 uppercase tracking-widest text-xs flex items-center justify-center gap-3 relative overflow-hidden`}
                 >
-                  Publicar Cambios
+                  <AnimatePresence>
+                    {showSuccess && (
+                      <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '-100%' }}
+                        className="absolute inset-0 bg-green-600 flex items-center justify-center gap-2"
+                      >
+                        <span className="text-xl">✅</span>
+                        ¡PUBLICADO!
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {isPublishing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Publicando...
+                    </>
+                  ) : (
+                    'Publicar Cambios'
+                  )}
                 </button>
               </div>
             </aside>

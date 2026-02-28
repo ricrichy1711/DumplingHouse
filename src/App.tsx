@@ -18,7 +18,7 @@ import { MenuItem, CartItem } from './types';
 function SiteContent() {
   const { user, logout } = useAuth();
   const { items: MENU_ITEMS } = useMenu();
-  const { config } = useSiteConfig();
+  const { config, isLoading } = useSiteConfig();
   const [cart, setCart] = React.useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = React.useState(false);
   const categories = React.useMemo(() => [
@@ -33,6 +33,25 @@ function SiteContent() {
       setActiveCategory(categories[0] || 'Todos');
     }
   }, [categories]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative"
+        >
+          <img src="/logo.jpg" alt="Logo" className="w-32 h-32 object-contain brightness-125 grayscale opacity-50" />
+          <div className="absolute inset-0 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+        </motion.div>
+        <div className="text-center">
+          <h2 className="text-xl font-bold tracking-tighter text-white uppercase italic">Cargando Experiencia</h2>
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2 underline decoration-red-600 underline-offset-4">Dumpling House Premium</p>
+        </div>
+      </div>
+    );
+  }
 
   // if seller, show admin panel only
   if (user?.role === 'seller') {
