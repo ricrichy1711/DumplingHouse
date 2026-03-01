@@ -16,6 +16,7 @@ interface AuthContextType {
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   isLoading: boolean;
+  isInitializing: boolean;
   error: string | null;
 }
 
@@ -24,46 +25,68 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false); // only true during login/register/logout ops
+  const [isInitializing, setIsInitializing] = useState(true); // true on first load
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // onAuthStateChange fires with INITIAL_SESSION immediately on mount
+    let mounted = true;
+
+    // Hard fallback: if Supabase fails to resolve getSession() due to lock crashes,
+    // force the app to mount after 2.5 seconds to avoid infinite loading screens.
+    const fallbackTimer = setTimeout(() => {
+      if (mounted) setIsInitializing(false);
+    }, 2500);
+
+    const initSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        if (session?.user) {
+          await loadUserProfile(session.user.id, session.user.email || '');
+        } else {
+          if (mounted) {
+            setUser(null);
+            setIsInitializing(false);
+          }
+        }
+      } catch (err) {
+        console.error("Auth init error:", err);
+        if (mounted) {
+          setUser(null);
+          setIsInitializing(false);
+        }
+      } finally {
+        clearTimeout(fallbackTimer);
+      }
+    };
+
+    initSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
+      // Ignore INITIAL_SESSION because `initSession()` handles it explicitly
+      if (event === 'INITIAL_SESSION') return;
+
       if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
         setUser(null);
+        setIsInitializing(false);
         return;
       }
+
       if (session?.user) {
         await loadUserProfile(session.user.id, session.user.email || '');
       } else {
         setUser(null);
+        setIsInitializing(false);
       }
     });
 
-    // Auto-recover session when tab becomes visible again or internet reconnects
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible') {
-        const { data } = await supabase.auth.getSession();
-        if (data.session?.user) {
-          await loadUserProfile(data.session.user.id, data.session.user.email || '');
-        }
-      }
-    };
-
-    const handleOnline = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        await loadUserProfile(data.session.user.id, data.session.user.email || '');
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('online', handleOnline);
-
     return () => {
+      mounted = false;
+      clearTimeout(fallbackTimer);
       subscription.unsubscribe();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('online', handleOnline);
     };
   }, []);
 
@@ -88,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (e) {
       setUser({ id: userId, email, name: email.split('@')[0], role: 'customer' });
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -154,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register, isLoading, error }}>
+    <AuthContext.Provider value={{ user, login, logout, register, isLoading, isInitializing, error }}>
       {children}
     </AuthContext.Provider>
   );

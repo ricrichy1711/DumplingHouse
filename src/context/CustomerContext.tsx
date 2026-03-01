@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { SimulatedUser } from '../data/users';
-import { simulatedUsersDatabase } from '../data/users';
-
-export interface Customer extends SimulatedUser {
+import { createContext, useContext, useState, ReactNode } from 'react';
+export interface Customer {
+  email: string;
+  name: string;
+  role: 'customer' | 'seller';
   blocked?: boolean;
 }
 
@@ -15,11 +15,7 @@ interface CustomerContextType {
 const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
 
 export const CustomerProvider = ({ children }: { children: ReactNode }) => {
-  const initial: Customer[] = simulatedUsersDatabase
-    .filter(u => u.role === 'customer')
-    .map(u => ({ ...u, blocked: false }));
-
-  const [customers, setCustomers] = useState<Customer[]>(initial);
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
   const blockCustomer = (email: string) => {
     setCustomers(prev =>

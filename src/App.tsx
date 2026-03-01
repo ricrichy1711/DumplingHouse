@@ -15,6 +15,25 @@ import { MenuItem, CartItem } from './types';
 
 
 
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="relative"
+      >
+        <img src="/logo.jpg" alt="Logo" className="w-32 h-32 object-contain brightness-125 grayscale opacity-50" />
+        <div className="absolute inset-0 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+      </motion.div>
+      <div className="text-center">
+        <h2 className="text-xl font-bold tracking-tighter text-white uppercase italic">Cargando Experiencia</h2>
+        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2 underline decoration-red-600 underline-offset-4">Dumpling House Premium</p>
+      </div>
+    </div>
+  );
+}
+
 function SiteContent() {
   const { user, logout } = useAuth();
   const { items: MENU_ITEMS, categories } = useMenu();
@@ -32,22 +51,7 @@ function SiteContent() {
   }, [categories]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative"
-        >
-          <img src="/logo.jpg" alt="Logo" className="w-32 h-32 object-contain brightness-125 grayscale opacity-50" />
-          <div className="absolute inset-0 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
-        </motion.div>
-        <div className="text-center">
-          <h2 className="text-xl font-bold tracking-tighter text-white uppercase italic">Cargando Experiencia</h2>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2 underline decoration-red-600 underline-offset-4">Dumpling House Premium</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // if seller, show admin panel only
@@ -126,7 +130,7 @@ function SiteContent() {
 
       <div className="relative z-10">
         {/* Navbar */}
-        <nav className="fixed w-full z-50 bg-[#0a0a0a]/90 backdrop-blur-sm border-b border-red-900/30">
+        <nav className="fixed top-0 left-0 w-full z-50 bg-[#0a0a0a]/90 backdrop-blur-sm border-b border-red-900/30">
           <div className="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <img src={config.logo || "/logo.jpg"} alt="Logo" className="h-14 w-14 object-contain" style={getImgStyle('logo')} />
@@ -179,7 +183,7 @@ function SiteContent() {
 
         <section
           id="home"
-          className={`relative min-h-[90vh] py-16 md:py-20 flex items-center justify-center overflow-hidden transition-all duration-500 bg-transparent ${config.heroBgImageHidden ? 'hidden' : ''}`}
+          className={`relative min-h-screen pt-32 pb-16 md:pt-40 md:pb-20 flex items-center justify-center overflow-hidden transition-all duration-500 bg-transparent ${config.heroBgImageHidden ? 'hidden' : ''}`}
         >
           {/* Hero Specific Background Layer */}
           {config.heroBgImage && !config.heroBgImageHidden && (
@@ -583,18 +587,31 @@ function SiteContent() {
   );
 }
 
+function AppProviders() {
+  const { isInitializing } = useAuth();
+
+  // STALL OTHER PROVIDERS UNTIL AUTH COMPLETES TO PREVENT SUPABASE LOCK ERRORS
+  if (isInitializing) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <SiteConfigProvider>
+      <MenuProvider>
+        <OrderProvider>
+          <CustomerProvider>
+            <SiteContent />
+          </CustomerProvider>
+        </OrderProvider>
+      </MenuProvider>
+    </SiteConfigProvider>
+  );
+}
+
 export function App() {
   return (
     <AuthProvider>
-      <SiteConfigProvider>
-        <MenuProvider>
-          <OrderProvider>
-            <CustomerProvider>
-              <SiteContent />
-            </CustomerProvider>
-          </OrderProvider>
-        </MenuProvider>
-      </SiteConfigProvider>
+      <AppProviders />
     </AuthProvider>
   );
 }

@@ -12,6 +12,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [mode, setMode] = useState<'login' | 'register' | 'recover'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [localError, setLocalError] = useState('');
   const [recoverSuccess, setRecoverSuccess] = useState(false);
@@ -23,11 +24,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('handleSubmit: starting login process');
     setLocalError('');
     setIsSubmitting(true);
     try {
       if (mode === 'login') {
+        console.log('handleSubmit: calling login()');
         const success = await login(email, password);
+        console.log('handleSubmit: login() returned', success);
         if (success) {
           onClose();
           setEmail('');
@@ -35,11 +39,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           setMode('login');
         }
       } else if (mode === 'register') {
+        if (password !== confirmPassword) {
+          setLocalError('Las contraseñas no coinciden');
+          return;
+        }
         const success = await register(name, email, password);
         if (success) {
           onClose();
           setEmail('');
           setPassword('');
+          setConfirmPassword('');
           setName('');
           setMode('login');
         }
@@ -59,8 +68,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         }, 4000);
       }
     } catch (err) {
+      console.log('handleSubmit: caught error', err);
       setLocalError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
+      console.log('handleSubmit: finally setting isSubmitting(false)');
       setIsSubmitting(false);
     }
   };
@@ -126,12 +137,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              {mode === 'register' && (
-                <p className="text-xs text-gray-500 mt-1">
-                  💡 El sistema asigna cliente por defecto; solo el email del vendedor
-                  pre‑registrado ({'vendedor@dumpling.com'}) se trata como vendedor.
-                </p>
-              )}
             </div>
 
             {mode !== 'recover' && (
@@ -145,6 +150,21 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            )}
+
+            {mode === 'register' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-1 mt-4">Confirmar Contraseña</label>
+                <input
+                  type="password"
+                  required
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 border border-gray-400 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100 text-gray-900 placeholder-gray-500"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
             )}
@@ -199,14 +219,6 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               </button>
             )}
           </div>
-
-          {mode === 'register' && (
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-xs">
-              <p className="font-semibold mb-1">📌 Cómo funciona la detección de rol:</p>
-              <p className="mb-2">• Por defecto: Cliente</p>
-              <p>• Contiene "seller-" o "admin-": Vendedor</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

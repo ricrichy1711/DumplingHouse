@@ -22,10 +22,16 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('orders')
         .select(`*, order_items(*)`)
         .order('created_at', { ascending: false });
+
+      if (user.role !== 'seller') {
+        query = query.eq('customer_id', user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching orders:', error);
@@ -63,15 +69,26 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
 
     // Real-time subscription for order status updates
     if (!user) return;
+
+    let filterString = undefined;
+    if (user.role !== 'seller') {
+      filterString = `customer_id=eq.${user.id}`;
+    }
+
     const channel = supabase
-      .channel('orders-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+      .channel(`orders-realtime-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+        filter: filterString
+      }, () => {
         fetchOrders();
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id]);
+  }, [user?.id, user?.role]);
 
   const addOrder = async (order: Order) => {
     try {
